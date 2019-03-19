@@ -1,8 +1,8 @@
 <#
 .Synopsis
-Terminate-UserObject is used to secure terminated employees user objects.
+Invoke-TerminateADUser is used to secure terminated employees user objects.
 .Description
-Terminate-UserObject was written to accomdate an AD Forest infrastructure and uses Get-ADForest to enumerate the domains available.
+Invoke-TerminateADUser was written to accomdate an AD Forest infrastructure and uses Get-ADForest to enumerate the domains available.
 It will validate a user for termination from any domain in the forest and accomodates user objects that have a 
 manager in another domain.  This script has been tested in an AD Forest with three domains and approximately
 900 User Objects. Results may vary with larger scale AD Forests. Script supports MFA or non-MFA MS Online 
@@ -27,7 +27,7 @@ Required if using multi-factor authentication with MS Online or Exchange Online
 .Parameter SkipOOO
 Skip processing the Out of Office replies
 .Example
-Terminate-UserObject -TargetUser Minnie.Mouse
+Invoke-TerminateADUser -TargetUser Minnie.Mouse
 NOTE: Will request credentials twice for login to MS Online and Exchange Online with MFA
 Output:
 Found Minnie.Mouse on DC1.SUB1.AD.CONTOSO.COM
@@ -53,7 +53,7 @@ Minnie Mouse hidden from Global Address List.
 Minnie Mouse moved to OU=Terminated,DC=SUB1,DC=AD,DC=CONTOSO,DC=COM.
 Minnie Mouse has been terminated.
 .Example
-Terminate-UserObject -TargetUser Mickey.Mouse -MFA
+Invoke-TerminateADUser -TargetUser Mickey.Mouse -MFA
 NOTE: Will request credentials for logging into MS Online and Exchange Online
 #>
 
@@ -93,7 +93,7 @@ Function Get-PrimarySMTP ($Target) {
     }
 }
 
-Function Disable-User {
+Function Invoke-DisableUser {
     
     # Disable User Object
 
@@ -106,7 +106,7 @@ Function Disable-User {
     }
 }
 
-Function Clear-UserGroups {
+Function Remove-UserGroups {
     # Remove User Object from all groups
 
     if ($null -eq $User.MemberOf) {
@@ -122,7 +122,7 @@ Function Clear-UserGroups {
     }
 }
 
-Function Clear-UserAttribs {
+Function Remove-UserAttribs {
     # Set description and clear other attributes
 
     Set-ADUser -Server $TargetDC -Identity $User -Description "User Object terminated $termDate"
@@ -297,11 +297,11 @@ else {
 
 # Perform tasks against User-Object
 
-Disable-User
+Invoke-DisableUser
 
-Clear-UserGroups
+Remove-UserGroups
 
-Clear-UserAttribs
+Remove-UserAttribs
 
 if (get-mailbox -Identity $User.UserPrincipalName) {
     # Perform Email and O365 Operations
